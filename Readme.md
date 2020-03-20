@@ -1,6 +1,6 @@
 # emma-test
 
-A quick demo for aggregate reports over a set of transactions.
+A quick demo for aggregate spending reports over a set of transactions.
 
 ## Run
 
@@ -19,8 +19,21 @@ To seed your database with some test data, you can use the following script:
           '2000-01-01'::timestamp + ((10000000 * random())::int || ' milliseconds')::interval as date,
           (1000 * random() + 1)::numeric::money as amount
   FROM generate_series(0, 999) AS u(a)
-  JOIN generate_series(0, 499) as m(a) ON 1=1
+  JOIN generate_series(0, 499) as m(a) ON 1=1;
 ```
+
+The query parameters are as follows:
+
+* **from**: start date of the query window (inclusive) of the form (yyyy-mm-dd)
+* **to**: end date of the query window (exclusive) of the form (yyyy-mm-dd)
+* **userId** *(optional)*: the userId for the user in question. If omitted, all users' data is returned
+* **page** *(optional)*: the page number for the result set (0 by default)
+
+The return value is a JSON object with the following entries:
+
+* **isEnd** *(boolean)*: true if there is no further page of data
+* **items** *([{merchant_id, user_id, percentile}])*: the percentile of a given user's spend for a particular merchant
+* **page** *(number)*: the (zero-based) number of the results page
 
 ## Test
 
@@ -30,15 +43,15 @@ To seed your database with some test data, you can use the following script:
 
 ## Discussion: approach
 
-This solution calculates the percentile of a user's spending for a given merchant as the spend ranking divided by the customers for this merchant.
+This solution calculates the percentile of a user's spending for a given merchant as the spend ranking divided by the customers for this merchant. Notably, this assumes that the percentile should be of users, not of their spending.
 
-Calculcting this rank requires processing of all users, so limiting the result set to a single user does not reduce the computational cost, O( U * M );
+Calculating this rank requires processing of all users' data, so limiting the result set to a single user does not reduce the computational cost: O( U * M )
 
 However, to ensure that not every single transaction needs to be processed, the aggregate spend per user per merchant is tallied for each transactions, meaning that the total spend of a user at a merchant can be determined retrieving only two rows: the last transaction total inside the query window, and the last transaction total prior to the query window (or 0 if there are no prior transactions). This helps the query scale to large time windows.
 
 A key assumption of this approach is that transaction inserts are sufficiently evenly distributed that guarding them with a trigger does not lead to contention.
 
-A more scalable version of this would make statistical assumptions over the customer distribution (modelling it as a Gamma distribution). This would reduce the single-user lookup to a comparison against the Cumulative Distribution of the Gamma function for each merchant. Should the data not readily fit to a distribution in real life, letting users compare themselves against cached histograms for fixed time widows would be a pragmatic workaround. All these options assume that the percentile has illustrative purposes and need not be highly accurate. 
+A more scalable version of this would have to make statistical assumptions over the customer distribution (modelling it as a Gamma distribution). This would reduce the single-user lookup to a comparison against the Cumulative Distribution of the Gamma function for each merchant: O( M ). Should the data not readily fit to a distribution in real life, letting users compare themselves against cached histograms for fixed time widows would be a pragmatic workaround. All these options assume that the percentile has illustrative purposes and need not be highly accurate. 
 
 ## Discussion: code structure
 

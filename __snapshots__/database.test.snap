@@ -39,12 +39,12 @@ Array [
     "items": Array [
       Object {
         "merchant_id": 0,
-        "percentile": 0.5,
+        "percentile": 1,
         "user_id": 0,
       },
       Object {
         "merchant_id": 0,
-        "percentile": 0.5,
+        "percentile": 1,
         "user_id": 1,
       },
     ],

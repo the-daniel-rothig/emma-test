@@ -49,22 +49,14 @@ AS $$
            ROW_NUMBER() OVER (PARTITION BY user_id, merchant_id ORDER BY amount_agg desc) row_no
     FROM "Transactions" 
     WHERE date < p_from
-  ), t AS (
-    SELECT t_high.merchant_id,
-           t_high.user_id,
-           t_high.amount_agg - COALESCE(t_low.amount_agg, 0::money) amount_agg,
-           RANK() OVER (PARTITION BY t_high.merchant_id ORDER BY t_high.amount_agg - COALESCE(t_low.amount_agg, 0::money) asc) row_no,
-           COUNT(*) OVER (PARTITION BY t_high.merchant_id) row_max
-    FROM t_high
-    LEFT JOIN t_low 
-    ON t_high.merchant_id = t_low.merchant_id
-      AND t_high.user_id = t_low.user_id
-      AND t_low.row_no = 1
-    WHERE t_high.row_no = 1
   )
-  SELECT
-    user_id,
-    merchant_id,
-    row_no::float / row_max as percentile
-  FROM t
+  SELECT  t_high.user_id,
+          t_high.merchant_id,
+          CUME_DIST() OVER (PARTITION BY t_high.merchant_id ORDER BY t_high.amount_agg - COALESCE(t_low.amount_agg, 0::money) asc) percentile
+  FROM t_high
+  LEFT JOIN t_low 
+  ON t_high.merchant_id = t_low.merchant_id
+    AND t_high.user_id = t_low.user_id
+    AND t_low.row_no = 1
+  WHERE t_high.row_no = 1
 $$;

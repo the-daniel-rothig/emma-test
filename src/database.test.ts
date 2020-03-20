@@ -150,8 +150,6 @@ describe('database', () => {
     JOIN generate_series(0, 499) as m(a) ON 1=1
     `, [dayOne])
 
-    console.log('finished data');
-
     const ts1 = new Date().getTime();
     
     await db.getReportsForUser(0, dayOne, dayTwo);
@@ -164,6 +162,8 @@ describe('database', () => {
 
     const seconds1 = (ts2-ts1)/1000;
     const seconds2 = (ts3-ts2)/1000;
+
+    console.log('performance (s):', seconds1, seconds2);
 
     expect(seconds1).toBeLessThan(5);
     expect(seconds2).toBeLessThan(5);
