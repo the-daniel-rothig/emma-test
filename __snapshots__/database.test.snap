@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`database queries the correct time slices 1`] = `
+Array [
+  ResultSet {
+    "isEnd": true,
+    "items": Array [
+      Object {
+        "merchant_id": 0,
+        "percentile": 0.5,
+        "user_id": 1,
+      },
+      Object {
+        "merchant_id": 0,
+        "percentile": 1,
+        "user_id": 0,
+      },
+    ],
+    "page": 0,
+  },
+  ResultSet {
+    "isEnd": true,
+    "items": Array [
+      Object {
+        "merchant_id": 0,
+        "percentile": 0.5,
+        "user_id": 0,
+      },
+      Object {
+        "merchant_id": 0,
+        "percentile": 1,
+        "user_id": 1,
+      },
+    ],
+    "page": 0,
+  },
+  ResultSet {
+    "isEnd": true,
+    "items": Array [
+      Object {
+        "merchant_id": 0,
+        "percentile": 0.5,
+        "user_id": 0,
+      },
+      Object {
+        "merchant_id": 0,
+        "percentile": 0.5,
+        "user_id": 1,
+      },
+    ],
+    "page": 0,
+  },
+]
+`;
